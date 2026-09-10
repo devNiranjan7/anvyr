@@ -15,21 +15,26 @@ export async function POST(req) {
     const body = await req.text();
     wh.verify(body, svixHeaders);
     const { data, type } = JSON.parse(body);
-    const userData = {
-        _id: data.id,
-        email: data.email_addresses[0].email_address,
-        name: `${data.first_name} ${data.last_name}`,
-        image: data.image_url,
-    };
     await connectDB();
     switch (type) {
         case "user.created":
         case "user.updated":
+            {
+                const userData = {
+                    _id: data.id,
+                    email: data.email_addresses[0].email_address,
+                    name:
+                        `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
+                        "User",
+                    image: data.image_url,
+                };
+
             await User.findByIdAndUpdate(data.id, userData, {
                 upsert: true,
                 new: true,
                 runValidators: true,
             });
+            }
             break;
 
         case "user.deleted":
