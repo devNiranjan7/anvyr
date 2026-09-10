@@ -29,16 +29,21 @@ export async function POST(req) {
                     image: data.image_url,
                 };
 
-            await User.findByIdAndUpdate(data.id, userData, {
-                upsert: true,
-                new: true,
-                runValidators: true,
-            });
+                await User.findByIdAndUpdate(data.id, userData, {
+                    upsert: true,
+                    new: true,
+                    runValidators: true,
+                });
             }
             break;
 
         case "user.deleted":
-            await User.findByIdAndDelete(data.id);
+            {
+                const result = await User.deleteOne({ _id: data.id });
+                console.log(
+                    `MongoDB user deletion for ${data.id}: ${result.deletedCount} document(s) removed`,
+                );
+            }
             break;
 
         default:
