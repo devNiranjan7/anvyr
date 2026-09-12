@@ -13,11 +13,13 @@ const Sidebar = ({
     onChatsChanged,
     handleNewChat,
     onChatDeleted,
+    activeChatId,
 }) => {
     const { openSignIn } = useClerk();
     const { user } = useContext(AppContext);
     const [openMenu, setOpenMenu] = useState({ id: 0, open: false });
     const [chats, setChats] = useState([]);
+    const [showQrCode, setShowQrCode] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -110,13 +112,18 @@ const Sidebar = ({
                             setChatId={setChatId}
                             refreshChats={onChatsChanged}
                             onChatDeleted={onChatDeleted}
+                            isActive={chat._id === activeChatId}
                         />
                     ))}
                 </div>
             </div>
             <div>
-                <div
-                    className={`flex items-center cursor-pointer group relative ${expand ? "gap-1 text-white/80 text-sm p-2.5 border border-primary rounded-lg hover:bg-white/10 cursor-pointer" : "h-10 w-10 mx-auto hover:bg-gray-500/30 rounded-lg"}`}
+                <button
+                    type="button"
+                    aria-label="Show website QR code"
+                    aria-expanded={showQrCode}
+                    onClick={() => setShowQrCode((isVisible) => !isVisible)}
+                    className={`w-full flex items-center cursor-pointer group relative ${expand ? "gap-1 text-white/80 text-sm p-2.5 border border-primary rounded-lg hover:bg-white/10 cursor-pointer" : "h-10 w-10 mx-auto hover:bg-gray-500/30 rounded-lg"}`}
                 >
                     <Image
                         src={
@@ -126,7 +133,7 @@ const Sidebar = ({
                         className={expand ? "w-5" : "w-6 mx-auto"}
                     />
                     <div
-                        className={`absolute -top-60 pb-8 ${!expand && "-right-40"} opacity-0 group-hover:opacity-100 hidden group-hover:block transition`}
+                        className={`absolute -top-60 pb-8 ${!expand && "-right-40"} opacity-0 group-hover:opacity-100 hidden group-hover:block transition ${showQrCode ? "max-md:opacity-100 max-md:block" : ""}`}
                     >
                         <div className="relative w-max bg-black text-white text-sm p-3 rounded-lg shadow-lg">
                             <Image
@@ -146,7 +153,7 @@ const Sidebar = ({
                             <Image src={assets.new_icon} alt="new icon" />
                         </>
                     )}
-                </div>
+                </button>
                 <div
                     onClick={user ? null : openSignIn}
                     className={`flex items-center ${expand ? "hover:bg-white/10 rounded-lg" : "justify-center w-full"} gap-3 text-white/60 text-sm p-2 mt-2 cursor-pointer`}

@@ -65,17 +65,25 @@ const PromptBox = ({
             setIsLoading(false);
         }
     };
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (!isLoading && prompt.trim() && chatId) {
+                e.currentTarget.form?.requestSubmit();
+            }
+        }
+    };
 
     return (
         <form
             onSubmit={handleSubmit}
-            className={`w-full ${false ? "max-w-3xl" : "max-w-2xl"} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
+            className={`w-full shrink-0 ${false ? "max-w-3xl" : "max-w-2xl"} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
         >
-            <textarea
+            <textarea onKeyDown={handleKeyDown}
                 rows={2}
                 placeholder="Message Anvyr"
                 required
-                className="outline-none w-full resize-none overflow-hidden wrap-break-word bg-transparent"
+                className="outline-none w-full resize-none overflow-hidden wrap-break-word bg-transparent max-h-40 overflow-y-auto"
                 onChange={(e) => setPrompt(e.target.value)}
                 value={prompt}
             />
@@ -87,7 +95,7 @@ const PromptBox = ({
                             alt="think"
                             className="h-5"
                         />
-                        DeepThink (L1)
+                        Gemini (Flash)
                     </p>
                     <p className="flex items-center gap-2 text-xs border border-gray-300/40 px-2 py-1 rounded-full cursor-pointer hover:bg-gray-500/20 transition">
                         <Image
@@ -99,11 +107,6 @@ const PromptBox = ({
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Image
-                        src={assets.pin_icon}
-                        alt=""
-                        className="w-4 cursor-pointer"
-                    />
                     <button
                         type="submit"
                         disabled={!prompt.trim() || isLoading || !chatId}

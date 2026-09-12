@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import Prism from "prismjs";
 
-const Message = ({ role, content, onRegenerate, isLastMessage,onEdit }) => {
+const Message = ({ role, content, onRegenerate, isLastMessage, onEdit }) => {
     const [copied, setCopied] = useState(false);
+    const [feedback, setFeedback] = useState(null);
 
     useEffect(() => {
         Prism.highlightAll();
@@ -37,11 +38,19 @@ const Message = ({ role, content, onRegenerate, isLastMessage,onEdit }) => {
                         <div className="flex items-center gap-2 opacity-70">
                             {role === "user" ? (
                                 <>
-                                    <Image
-                                        src={assets.copy_icon}
-                                        alt="copy"
-                                        className="w-4 cursor-pointer"
-                                    />
+                                    <div className="relative">
+                                        <Image
+                                            onClick={handleCopy}
+                                            src={assets.copy_icon}
+                                            alt="copy"
+                                            className="w-4 cursor-pointer"
+                                        />
+                                        {copied && (
+                                            <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs text-white bg-black px-2 py-1 rounded">
+                                                Copied
+                                            </span>
+                                        )}
+                                    </div>
                                     <Image
                                         onClick={() => onEdit(content)}
                                         src={assets.pencil_icon}
@@ -79,21 +88,46 @@ const Message = ({ role, content, onRegenerate, isLastMessage,onEdit }) => {
                                         }`}
                                     />
                                     <Image
+                                        onClick={() =>
+                                            setFeedback(
+                                                feedback === "like"
+                                                    ? null
+                                                    : "like",
+                                            )
+                                        }
                                         src={assets.like_icon}
                                         alt="like"
-                                        className="w-4.5 cursor-pointer"
+                                        className={`w-4.5 cursor-pointer ${
+                                            feedback === "like"
+                                                ? "opacity-100"
+                                                : "opacity-30"
+                                        }`}
                                     />
+
                                     <Image
+                                        onClick={() =>
+                                            setFeedback(
+                                                feedback === "dislike"
+                                                    ? null
+                                                    : "dislike",
+                                            )
+                                        }
                                         src={assets.dislike_icon}
                                         alt="dislike"
-                                        className="w-4.5 cursor-pointer"
+                                        className={`w-4.5 cursor-pointer ${
+                                            feedback === "dislike"
+                                                ? "opacity-100"
+                                                : "opacity-30"
+                                        }`}
                                     />
                                 </>
                             )}
                         </div>
                     </div>
                     {role === "user" ? (
-                        <span className="text-white/90">{content}</span>
+                        <span className="break-words text-white/90">
+                            {content}
+                        </span>
                     ) : (
                         <>
                             <Image
@@ -120,7 +154,7 @@ const Message = ({ role, content, onRegenerate, isLastMessage,onEdit }) => {
                                             </h3>
                                         ),
                                         p: ({ children }) => (
-                                            <p className="leading-7 mb-3">
+                                            <p className="break-words leading-7 mb-3">
                                                 {children}
                                             </p>
                                         ),

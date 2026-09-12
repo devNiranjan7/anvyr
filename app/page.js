@@ -180,12 +180,17 @@ export default function Home() {
                     expand={expand}
                     setExpand={setExpand}
                     setChatId={setChatId}
+                    activeChatId={chatId}
                     refreshChats={refreshChats}
                     onChatsChanged={() => setRefreshChats((prev) => prev + 1)}
                     handleNewChat={handleNewChat}
                     onChatDeleted={handleChatDeleted}
                 />
-                <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 bg-[#292a2d] text-white relative">
+                <div
+                    className={`flex-1 min-w-0 flex flex-col items-center px-4 pb-8 bg-[#292a2d] text-white relative ${
+                        messages.length === 0 ? "justify-center" : "justify-end"
+                    }`}
+                >
                     <div className="md:hidden absolute px-4 top-6 flex items-center justify-between w-full">
                         <Image
                             onClick={() => setExpand(!expand)}
@@ -193,11 +198,18 @@ export default function Home() {
                             src={assets.menu_icon}
                             alt="menu"
                         />
-                        <Image
-                            className="opacity-70"
-                            src={assets.chat_icon}
-                            alt="chat"
-                        />
+                        <button
+                            type="button"
+                            onClick={handleNewChat}
+                            aria-label="New chat"
+                            className="rounded-lg p-2 hover:bg-white/10"
+                        >
+                            <Image
+                                className="opacity-70"
+                                src={assets.chat_icon}
+                                alt=""
+                            />
+                        </button>
                     </div>
                     {messages.length === 0 ? (
                         <>
@@ -216,7 +228,7 @@ export default function Home() {
                             </p>
                         </>
                     ) : (
-                        <div className="w-full max-w-3xl overflow-y-auto">
+                        <div className="w-full max-w-3xl flex-1 min-h-0 overflow-y-auto pt-20 md:pt-4">
                             {messages.map((message, index) => (
                                 <Message
                                     key={index}
