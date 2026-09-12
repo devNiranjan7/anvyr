@@ -4,6 +4,7 @@ import { useClerk, UserButton } from "@clerk/nextjs";
 import Image from "next/image.js";
 import { useContext, useEffect, useState } from "react";
 import ChatLabel from "./ChatLabel.jsx";
+import toast from "react-hot-toast";
 
 const Sidebar = ({
     expand,
@@ -33,7 +34,7 @@ const Sidebar = ({
                     setChats(data.data);
                 }
             } catch (error) {
-                console.error("Error fetching chats:", error);
+                toast.error("Error fetching chats:", error);
             }
         };
         fetchChats();

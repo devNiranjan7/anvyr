@@ -1,6 +1,7 @@
 import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 const PromptBox = ({
     isLoading,
@@ -9,7 +10,6 @@ const PromptBox = ({
     setMessages,
     setRefreshChats,
     editingMessage,
-    setEditingMessage,
     onEditSubmit,
     onEditComplete,
 }) => {
@@ -60,7 +60,7 @@ const PromptBox = ({
             ]);
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            console.error(error);
+            toast.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -79,7 +79,8 @@ const PromptBox = ({
             onSubmit={handleSubmit}
             className={`w-full shrink-0 ${false ? "max-w-3xl" : "max-w-2xl"} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
         >
-            <textarea onKeyDown={handleKeyDown}
+            <textarea
+                onKeyDown={handleKeyDown}
                 rows={2}
                 placeholder="Message Anvyr"
                 required

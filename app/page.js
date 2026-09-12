@@ -6,6 +6,7 @@ import PromptBox from "@/components/PromptBox.jsx";
 import Sidebar from "@/components/Sidebar.jsx";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Home() {
     const [expand, setExpand] = useState(false);
@@ -42,7 +43,7 @@ export default function Home() {
                 if (error.name === "AbortError") {
                     return;
                 }
-                console.error("Error fetching chat:", error);
+                toast.error("Error fetching chat:", error);
             }
         };
         fetchChat();
@@ -78,7 +79,7 @@ export default function Home() {
             setMessages([]);
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            console.error("Error creating new chat:", error);
+            toast.error("Error creating new chat:", error);
         }
     };
     const handleChatDeleted = (deleteChatId) => {
@@ -123,7 +124,7 @@ export default function Home() {
             });
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            console.error("Error regenerating response:", error);
+            toast.error("Error regenerating response:", error);
         } finally {
             setIsLoading(false);
         }
@@ -167,7 +168,7 @@ export default function Home() {
             setEditingMessage(null);
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            console.error("Error editing message:", error);
+            toast.error("Error editing message:", error);
         } finally {
             setIsLoading(false);
         }

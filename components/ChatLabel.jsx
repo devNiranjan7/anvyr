@@ -4,6 +4,7 @@ import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import toast from "react-hot-toast";
 
 const ChatLabel = ({
     chat,
@@ -40,15 +41,13 @@ const ChatLabel = ({
             refreshChats();
             setOpenMenu({ id: null, open: false });
         } catch (error) {
-            console.error("Error renaming chat:", error);
+            toast.error("Error renaming chat:", error);
         }
     };
-
     const handleDelete = async () => {
         if (!confirm(`Delete \"${chat.name}\"?`)) {
             return;
         }
-
         try {
             const response = await fetch("/api/chat/delete", {
                 method: "POST",
@@ -65,7 +64,7 @@ const ChatLabel = ({
             onChatDeleted(chat._id);
             setOpenMenu({ id: null, open: false });
         } catch (error) {
-            console.error("Error deleting chat:", error);
+            toast.error("Error deleting chat:", error);
         }
     };
 

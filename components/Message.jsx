@@ -3,6 +3,7 @@ import Image from "next/image.js";
 import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import Prism from "prismjs";
+import toast from "react-hot-toast";
 
 const Message = ({ role, content, onRegenerate, isLastMessage, onEdit }) => {
     const [copied, setCopied] = useState(false);
@@ -20,7 +21,7 @@ const Message = ({ role, content, onRegenerate, isLastMessage, onEdit }) => {
                 setCopied(false);
             }, 1500);
         } catch (error) {
-            console.error("Failed to copy:", error);
+            toast.error("Failed to copy:", error);
         }
     };
 
