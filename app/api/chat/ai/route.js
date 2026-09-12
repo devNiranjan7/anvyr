@@ -17,8 +17,12 @@ export async function POST(req) {
                 { status: 401 },
             );
         }
-        const { chatId, message, regenerate } = await req.json();
-        if (!chatId || (!message && !regenerate)) {
+        const { chatId, message, regenerate, editIndex } = await req.json();
+        if (
+            !chatId ||
+            (!message && !regenerate) ||
+            (editIndex !== undefined && !message)
+        ) {
             return NextResponse.json(
                 { error: "Chat ID and message are required" },
                 { status: 400 },
@@ -31,6 +35,50 @@ export async function POST(req) {
                 { error: "Chat not found" },
                 { status: 404 },
             );
+        }
+        if (editIndex !== undefined) {
+            const editedMessage = message.trim();
+            const messagesToKeep = chat.messages.slice(0, editIndex);
+            const messages = [
+                ...messagesToKeep.map((msg) => ({
+                    role: msg.role === "user" ? "user" : "model",
+                    parts: [{ text: msg.content }],
+                })),
+                {
+                    role: "user",
+                    parts: [{ text: editedMessage }],
+                },
+            ];
+            const response = await ai.models.generateContent({
+                model: "gemini-3.6-flash",
+                contents: messages,
+            });
+            const aiMessage = response.text;
+            const updatedMessages = [
+                ...messagesToKeep,
+                {
+                    role: "user",
+                    content: editedMessage,
+                    timestamp: Date.now(),
+                },
+                {
+                    role: "assistant",
+                    content: aiMessage,
+                    timestamp: Date.now(),
+                },
+            ];
+            await Chat.updateOne(
+                { _id: chatId, userId },
+                {
+                    $set: {
+                        messages: updatedMessages,
+                    },
+                },
+            );
+            return NextResponse.json({
+                success: true,
+                message: aiMessage,
+            });
         }
         if (regenerate) {
             const lastUserIndex = chat.messages

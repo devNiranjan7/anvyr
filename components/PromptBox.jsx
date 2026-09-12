@@ -1,6 +1,6 @@
 import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const PromptBox = ({
     isLoading,
@@ -8,11 +8,27 @@ const PromptBox = ({
     chatId,
     setMessages,
     setRefreshChats,
+    editingMessage,
+    setEditingMessage,
+    onEditSubmit,
+    onEditComplete,
 }) => {
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState(editingMessage || "");
+
+    useEffect(() => {
+        if (editingMessage !== null) {
+            setPrompt(editingMessage);
+        }
+    }, [editingMessage]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (editingMessage !== null) {
+            onEditSubmit(prompt.trim());
+            setPrompt("");
+            onEditComplete();
+            return;
+        }
         if (!prompt.trim() || isLoading || !chatId) {
             return;
         }

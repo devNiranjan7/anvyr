@@ -13,6 +13,7 @@ export default function Home() {
     const [isLoading, setIsLoading] = useState(false);
     const [chatId, setChatId] = useState(null);
     const [refreshChats, setRefreshChats] = useState(0);
+    const [editingMessage, setEditingMessage] = useState(null);
 
     const messagesEndRef = useRef(null);
 
@@ -127,6 +128,50 @@ export default function Home() {
             setIsLoading(false);
         }
     };
+    const handleEdit = (index) => {
+        setEditingMessage(index);
+    };
+    const handleEditSubmit = async (newContent) => {
+        if (!newContent.trim() || editingMessage === null || isLoading) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const response = await fetch("/api/chat/ai", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    chatId,
+                    message: newContent.trim(),
+                    editIndex: editingMessage,
+                }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to edit message");
+            }
+            setMessages((prev) => {
+                const updatedMessages = prev.slice(0, editingMessage);
+                updatedMessages.push({
+                    role: "user",
+                    content: newContent.trim(),
+                });
+                updatedMessages.push({
+                    role: "assistant",
+                    content: data.message,
+                });
+                return updatedMessages;
+            });
+            setEditingMessage(null);
+            setRefreshChats((prev) => prev + 1);
+        } catch (error) {
+            console.error("Error editing message:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div>
@@ -182,6 +227,7 @@ export default function Home() {
                                         message.role === "assistant"
                                     }
                                     onRegenerate={handleRegenerate}
+                                    onEdit={() => handleEdit(index)}
                                 />
                             ))}
                             {isLoading && (
@@ -213,6 +259,14 @@ export default function Home() {
                         chatId={chatId}
                         setMessages={setMessages}
                         setRefreshChats={setRefreshChats}
+                        editingMessage={
+                            editingMessage !== null
+                                ? messages[editingMessage]?.content
+                                : null
+                        }
+                        setEditingMessage={setEditingMessage}
+                        onEditSubmit={handleEditSubmit}
+                        onEditComplete={() => setEditingMessage(null)}
                     />
                     <p className="text-xs absolute bottom-1 text-gray-500">
                         AI-generated, for reference only

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import Prism from "prismjs";
 
-const Message = ({ role, content, onRegenerate, isLastMessage }) => {
+const Message = ({ role, content, onRegenerate, isLastMessage,onEdit }) => {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
@@ -43,6 +43,7 @@ const Message = ({ role, content, onRegenerate, isLastMessage }) => {
                                         className="w-4 cursor-pointer"
                                     />
                                     <Image
+                                        onClick={() => onEdit(content)}
                                         src={assets.pencil_icon}
                                         alt="pencil"
                                         className="w-4.5 cursor-pointer"
