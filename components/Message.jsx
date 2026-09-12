@@ -125,7 +125,7 @@ const Message = ({ role, content, onRegenerate, isLastMessage, onEdit }) => {
                         </div>
                     </div>
                     {role === "user" ? (
-                        <span className="break-words text-white/90">
+                        <span className="wrap-break-word text-white/90">
                             {content}
                         </span>
                     ) : (
@@ -154,7 +154,7 @@ const Message = ({ role, content, onRegenerate, isLastMessage, onEdit }) => {
                                             </h3>
                                         ),
                                         p: ({ children }) => (
-                                            <p className="break-words leading-7 mb-3">
+                                            <p className="wrap-break-word leading-7 mb-3">
                                                 {children}
                                             </p>
                                         ),
