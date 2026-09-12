@@ -2,11 +2,57 @@ import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
 import { useState } from "react";
 
-const PromptBox = ({ isLoading, setIsLoading }) => {
+const PromptBox = ({
+    isLoading,
+    setIsLoading,
+    chatId,
+    setMessages,
+    setRefreshChats,
+}) => {
     const [prompt, setPrompt] = useState("");
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!prompt.trim() || isLoading || !chatId) {
+            return;
+        }
+        const userMessage = prompt.trim();
+        setPrompt("");
+        setIsLoading(true);
+        setMessages((prev) => [
+            ...prev,
+            { role: "user", content: userMessage },
+        ]);
+        try {
+            const response = await fetch("/api/chat/ai", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    chatId,
+                    message: userMessage,
+                }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to get AI response");
+            }
+            setMessages((prev) => [
+                ...prev,
+                { role: "assistant", content: data.message },
+            ]);
+            setRefreshChats((prev) => prev + 1);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <form
+            onSubmit={handleSubmit}
             className={`w-full ${false ? "max-w-3xl" : "max-w-2xl"} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
         >
             <textarea
@@ -43,7 +89,9 @@ const PromptBox = ({ isLoading, setIsLoading }) => {
                         className="w-4 cursor-pointer"
                     />
                     <button
-                        className={`${prompt ? "bg-primary" : "bg-[#71717a]"} rounded-full p-2 cursor-pointer`}
+                        type="submit"
+                        disabled={!prompt.trim() || isLoading || !chatId}
+                        className={`${prompt ? "bg-primary" : "bg-[#71717a]"} rounded-full p-2 cursor-pointe disabled:cursor-not-allowed`}
                     >
                         <Image
                             src={

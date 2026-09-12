@@ -1,7 +1,14 @@
 import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
+import { useEffect } from "react";
+import Markdown from "react-markdown";
+import Prism from "prismjs";
 
 const Message = ({ role, content }) => {
+    useEffect(() => {
+        Prism.highlightAll();
+    }, [content]);
+
     return (
         <div className="flex flex-col items-center w-full max-w-3xl text-sm">
             <div
@@ -57,12 +64,14 @@ const Message = ({ role, content }) => {
                         <span className="text-white/90">{content}</span>
                     ) : (
                         <>
-                        <Image
-                            src={assets.logo_icon}
-                            alt="logo"
-                            className="h-8 w-8 p-1 border border-white/15 rounded-full"
-                        />
-                        <div className="space-y-4 w-full overflow-scroll">{content}</div>
+                            <Image
+                                src={assets.logo_icon}
+                                alt="logo"
+                                className="h-8 w-8 p-1 border border-white/15 rounded-full"
+                            />
+                            <div className="space-y-4 w-full overflow-scroll">
+                                <Markdown>{content}</Markdown>
+                            </div>
                         </>
                     )}
                 </div>

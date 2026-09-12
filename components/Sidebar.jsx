@@ -2,19 +2,44 @@ import { assets } from "@/assets/assets.js";
 import { AppContext } from "@/context/AppContext.jsx";
 import { useClerk, UserButton } from "@clerk/nextjs";
 import Image from "next/image.js";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ChatLabel from "./ChatLabel.jsx";
 
-const Sidebar = ({ expand, setExpand }) => {
+const Sidebar = ({
+    expand,
+    setExpand,
+    setChatId,
+    refreshChats,
+    handleNewChat,
+}) => {
     const { openSignIn } = useClerk();
     const { user } = useContext(AppContext);
-    const [openMenu, setOpenMenu] = useState({id:0,open:false});
+    const [openMenu, setOpenMenu] = useState({ id: 0, open: false });
+    const [chats, setChats] = useState([]);
+
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+        const fetchChats = async () => {
+            try {
+                const response = await fetch("/api/chat/get");
+                const data = await response.json();
+                if (data.success) {
+                    setChats(data.data);
+                }
+            } catch (error) {
+                console.error("Error fetching chats:", error);
+            }
+        };
+        fetchChats();
+    }, [user, refreshChats]);
 
     return (
         <div
-            className={`flex flex-col justify-between bg-[#212327] transition-all z-50 max-md:absolute max-md:h-screen ${expand ? "p-4 pt-7 w-64" : "pt-7 md:w-20 w-0 max-md:overflow-hidden"}`}
+            className={`flex flex-col justify-between bg-[#212327] h-screen transition-all z-50 max-md:absolute max-md:h-screen ${expand ? "p-4 pt-7 w-64" : "pt-7 md:w-20 w-0 max-md:overflow-hidden"}`}
         >
-            <div>
+            <div className="flex flex-col min-h-0 flex-1">
                 <div
                     className={`flex ${expand ? "flex-row" : "flex-col items-center"} gap-8`}
                 >
@@ -52,6 +77,7 @@ const Sidebar = ({ expand, setExpand }) => {
                     </div>
                 </div>
                 <button
+                    onClick={handleNewChat}
                     className={`group relative mt-8 flex items-center justify-center cursor-pointer ${expand ? "bg-primary hover:opacity-90 rounded-2xl gap-2 p-2.5 w-max" : "h-9 w-9 mx-auto hover:bg-gray-500/30 rounded-lg"}`}
                 >
                     <Image
@@ -70,10 +96,18 @@ const Sidebar = ({ expand, setExpand }) => {
                     )}
                 </button>
                 <div
-                    className={`mt-8 text-white/25 text-sm ${expand ? "block" : "hidden"}`}
+                    className={`my-8 text-white/25 text-sm min-h-0 overflow-y-auto ${expand ? "block" : "hidden"}`}
                 >
                     <p className="my-1">Recents</p>
-                    <ChatLabel openMenu={openMenu} setOpenMenu={setOpenMenu}/>
+                    {chats.map((chat) => (
+                        <ChatLabel
+                            key={chat._id}
+                            chat={chat}
+                            openMenu={openMenu}
+                            setOpenMenu={setOpenMenu}
+                            setChatId={setChatId}
+                        />
+                    ))}
                 </div>
             </div>
             <div>
