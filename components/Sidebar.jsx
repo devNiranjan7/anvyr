@@ -10,6 +10,7 @@ const Sidebar = ({
     setExpand,
     setChatId,
     refreshChats,
+    onChatsChanged,
     handleNewChat,
 }) => {
     const { openSignIn } = useClerk();
@@ -106,6 +107,7 @@ const Sidebar = ({
                             openMenu={openMenu}
                             setOpenMenu={setOpenMenu}
                             setChatId={setChatId}
+                            refreshChats={onChatsChanged}
                         />
                     ))}
                 </div>

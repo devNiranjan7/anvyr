@@ -75,6 +75,7 @@ export default function Home() {
                     setExpand={setExpand}
                     setChatId={setChatId}
                     refreshChats={refreshChats}
+                    onChatsChanged={() => setRefreshChats((prev) => prev + 1)}
                     handleNewChat={handleNewChat}
                 />
                 <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 bg-[#292a2d] text-white relative">
