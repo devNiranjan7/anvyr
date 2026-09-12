@@ -2,8 +2,20 @@
 
 import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 
-const ChatLabel = ({ chat, openMenu, setOpenMenu, setChatId, refreshChats }) => {
+const ChatLabel = ({
+    chat,
+    openMenu,
+    setOpenMenu,
+    setChatId,
+    refreshChats,
+    onChatDeleted,
+}) => {
+    const [menuPosition, setMenuPosition] = useState(null);
+    const isMenuOpen = openMenu.open && openMenu.id === chat._id;
+
     const handleRename = async () => {
         const newName = prompt("Enter new chat name:", chat.name);
         if (!newName || !newName.trim()) {
@@ -49,14 +61,40 @@ const ChatLabel = ({ chat, openMenu, setOpenMenu, setChatId, refreshChats }) => 
                 throw new Error(data.error || "Failed to delete chat");
             }
             refreshChats();
+            onChatDeleted(chat._id);
             setOpenMenu({ id: null, open: false });
         } catch (error) {
             console.error("Error deleting chat:", error);
         }
     };
 
-    return (
+    const menu = isMenuOpen && menuPosition && (
         <div
+            className="fixed z-50 w-fit rounded-xl bg-gray-700 p-2 shadow-xl text-gray-200"
+            style={menuPosition}
+        >
+            <button
+                type="button"
+                onClick={handleRename}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/10"
+            >
+                <Image src={assets.pencil_icon} alt="pencil" className="w-4" />
+                <p>Rename</p>
+            </button>
+            <button
+                type="button"
+                onClick={handleDelete}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/10"
+            >
+                <Image src={assets.delete_icon} alt="delete" className="w-4" />
+                <p>Delete</p>
+            </button>
+        </div>
+    );
+
+    return (
+        <>
+            <div
             onClick={() => setChatId(chat._id)}
             className="flex items-center justify-between p-2
 text-white/80 hover:bg-white/10 rounded-lg text-sm group cursor-pointer"
@@ -68,6 +106,11 @@ text-white/80 hover:bg-white/10 rounded-lg text-sm group cursor-pointer"
                     aria-label={`Open menu for ${chat.name}`}
                     onClick={(event) => {
                         event.stopPropagation();
+                        const { right, top } = event.currentTarget.getBoundingClientRect();
+                        setMenuPosition({
+                            left: right + 8,
+                            top: Math.min(top, window.innerHeight - 112),
+                        });
                         setOpenMenu((current) => ({
                             id: chat._id,
                             open: !(current.open && current.id === chat._id),
@@ -78,31 +121,13 @@ text-white/80 hover:bg-white/10 rounded-lg text-sm group cursor-pointer"
                     <Image
                         src={assets.three_dots}
                         alt=""
-                        className={`w-4 ${openMenu.open && openMenu.id === chat._id ? "block" : "hidden group-hover:block"}`}
+                        className={`w-4 ${isMenuOpen ? "block" : "hidden group-hover:block"}`}
                     />
                 </button>
-                <div
-                    className={`absolute z-10 ${openMenu.open && openMenu.id === chat._id ? "" : "hidden"} right-0 top-6 bg-gray-700 rounded-xl w-max p-2 shadow-xl`}
-                >
-                    <button type="button" onClick={(event) => { event.stopPropagation(); handleRename(); }} className="flex w-full items-center gap-3 hover:bg-white/10 px-3 py-2 rounded-lg">
-                        <Image
-                            src={assets.pencil_icon}
-                            alt="pencil"
-                            className="w-4"
-                        />
-                        <p>Rename</p>
-                    </button>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); handleDelete(); }} className="flex w-full items-center gap-3 hover:bg-white/10 px-3 py-2 rounded-lg">
-                        <Image
-                            src={assets.delete_icon}
-                            alt="delete"
-                            className="w-4"
-                        />
-                        <p>Delete</p>
-                    </button>
-                </div>
             </div>
-        </div>
+            </div>
+            {typeof document !== "undefined" && createPortal(menu, document.body)}
+        </>
     );
 };
 

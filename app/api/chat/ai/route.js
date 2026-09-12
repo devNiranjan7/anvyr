@@ -17,8 +17,8 @@ export async function POST(req) {
                 { status: 401 },
             );
         }
-        const { chatId, message } = await req.json();
-        if (!chatId || !message) {
+        const { chatId, message, regenerate } = await req.json();
+        if (!chatId || (!message && !regenerate)) {
             return NextResponse.json(
                 { error: "Chat ID and message are required" },
                 { status: 400 },
@@ -31,6 +31,46 @@ export async function POST(req) {
                 { error: "Chat not found" },
                 { status: 404 },
             );
+        }
+        if (regenerate) {
+            const lastUserIndex = chat.messages
+                .map((msg) => msg.role)
+                .lastIndexOf("user");
+            if (lastUserIndex === -1) {
+                return NextResponse.json(
+                    { error: "No user message to regenerate" },
+                    { status: 400 },
+                );
+            }
+            const messagesToKeep = chat.messages.slice(0, lastUserIndex + 1);
+            const messages = messagesToKeep.map((msg) => ({
+                role: msg.role === "user" ? "user" : "model",
+                parts: [{ text: msg.content }],
+            }));
+            const response = await ai.models.generateContent({
+                model: "gemini-3.6-flash",
+                contents: messages,
+            });
+            const aiMessage = response.text;
+            await Chat.updateOne(
+                { _id: chatId, userId },
+                {
+                    $set: {
+                        messages: [
+                            ...messagesToKeep,
+                            {
+                                role: "assistant",
+                                content: aiMessage,
+                                timestamp: Date.now(),
+                            },
+                        ],
+                    },
+                },
+            );
+            return NextResponse.json({
+                success: true,
+                message: aiMessage,
+            });
         }
         const userMessage = {
             role: "user",

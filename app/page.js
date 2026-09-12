@@ -5,7 +5,7 @@ import Message from "@/components/Message.jsx";
 import PromptBox from "@/components/PromptBox.jsx";
 import Sidebar from "@/components/Sidebar.jsx";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
     const [expand, setExpand] = useState(false);
@@ -14,13 +14,18 @@ export default function Home() {
     const [chatId, setChatId] = useState(null);
     const [refreshChats, setRefreshChats] = useState(0);
 
+    const messagesEndRef = useRef(null);
+
     useEffect(() => {
         if (!chatId) {
             return;
         }
+        const controller = new AbortController();
         const fetchChat = async () => {
             try {
-                const response = await fetch(`/api/chat/get?chatId=${chatId}`);
+                const response = await fetch(`/api/chat/get?chatId=${chatId}`, {
+                    signal: controller.signal,
+                });
                 const data = await response.json();
                 if (!response.ok) {
                     if (response.status === 404) {
@@ -33,10 +38,14 @@ export default function Home() {
                 }
                 setMessages(data.data.messages || []);
             } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
                 console.error("Error fetching chat:", error);
             }
         };
         fetchChat();
+        return () => controller.abort();
     }, [chatId]);
     useEffect(() => {
         if (chatId) {
@@ -49,6 +58,11 @@ export default function Home() {
             setChatId(savedChatId);
         }
     }, []);
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+        });
+    }, [messages, isLoading]);
 
     const handleNewChat = async () => {
         try {
@@ -66,6 +80,53 @@ export default function Home() {
             console.error("Error creating new chat:", error);
         }
     };
+    const handleChatDeleted = (deleteChatId) => {
+        if (deleteChatId !== chatId) {
+            return;
+        }
+        setChatId(null);
+        setMessages([]);
+        localStorage.removeItem("anvyr-chat-id");
+        handleNewChat();
+    };
+    const handleRegenerate = async () => {
+        if (!chatId || isLoading) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const response = await fetch("/api/chat/ai", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chatId,
+                    regenerate: true,
+                }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to regenerate response");
+            }
+            setMessages((prev) => {
+                const updated = [...prev];
+                const lastAssistantIndex = updated
+                    .map((message) => message.role)
+                    .lastIndexOf("assistant");
+                if (lastAssistantIndex !== -1) {
+                    updated[lastAssistantIndex] = {
+                        ...updated[lastAssistantIndex],
+                        content: data.message,
+                    };
+                }
+                return updated;
+            });
+            setRefreshChats((prev) => prev + 1);
+        } catch (error) {
+            console.error("Error regenerating response:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div>
@@ -77,6 +138,7 @@ export default function Home() {
                     refreshChats={refreshChats}
                     onChatsChanged={() => setRefreshChats((prev) => prev + 1)}
                     handleNewChat={handleNewChat}
+                    onChatDeleted={handleChatDeleted}
                 />
                 <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 bg-[#292a2d] text-white relative">
                     <div className="md:hidden absolute px-4 top-6 flex items-center justify-between w-full">
@@ -115,8 +177,34 @@ export default function Home() {
                                     key={index}
                                     role={message.role}
                                     content={message.content}
+                                    isLastMessage={
+                                        index === messages.length - 1 &&
+                                        message.role === "assistant"
+                                    }
+                                    onRegenerate={handleRegenerate}
                                 />
                             ))}
+                            {isLoading && (
+                                <div className="flex items-center gap-2 px-4 py-3 text-white/60">
+                                    <Image
+                                        src={assets.logo_icon}
+                                        alt="Anvyr"
+                                        className="w-5 h-5"
+                                    />
+                                    <div className="flex items-center gap-1">
+                                        <span className="animate-bounce">
+                                            ●
+                                        </span>
+                                        <span className="animate-bounce [animation-delay:150ms]">
+                                            ●
+                                        </span>
+                                        <span className="animate-bounce [animation-delay:150ms]">
+                                            ●
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
                     )}
                     <PromptBox

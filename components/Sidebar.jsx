@@ -12,6 +12,7 @@ const Sidebar = ({
     refreshChats,
     onChatsChanged,
     handleNewChat,
+    onChatDeleted,
 }) => {
     const { openSignIn } = useClerk();
     const { user } = useContext(AppContext);
@@ -108,6 +109,7 @@ const Sidebar = ({
                             setOpenMenu={setOpenMenu}
                             setChatId={setChatId}
                             refreshChats={onChatsChanged}
+                            onChatDeleted={onChatDeleted}
                         />
                     ))}
                 </div>

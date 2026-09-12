@@ -1,13 +1,27 @@
 import { assets } from "@/assets/assets.js";
 import Image from "next/image.js";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import Prism from "prismjs";
 
-const Message = ({ role, content }) => {
+const Message = ({ role, content, onRegenerate, isLastMessage }) => {
+    const [copied, setCopied] = useState(false);
+
     useEffect(() => {
         Prism.highlightAll();
     }, [content]);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(content);
+            setCopied(true);
+            setTimeout(() => {
+                setCopied(false);
+            }, 1500);
+        } catch (error) {
+            console.error("Failed to copy:", error);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center w-full max-w-3xl text-sm">
@@ -36,15 +50,32 @@ const Message = ({ role, content }) => {
                                 </>
                             ) : (
                                 <>
+                                    <div className="relative">
+                                        <Image
+                                            onClick={handleCopy}
+                                            src={assets.copy_icon}
+                                            alt="copy"
+                                            className="w-4.5 cursor-pointer"
+                                        />
+                                        {copied && (
+                                            <span className="absolute left-1/2 -translate-x-1/2 -top-7 text-xs text-white bg-black px-2 py-1 rounded">
+                                                Copied
+                                            </span>
+                                        )}
+                                    </div>
                                     <Image
-                                        src={assets.copy_icon}
-                                        alt="copy"
-                                        className="w-4.5 cursor-pointer"
-                                    />
-                                    <Image
+                                        onClick={
+                                            isLastMessage
+                                                ? onRegenerate
+                                                : undefined
+                                        }
                                         src={assets.regenerate_icon}
                                         alt="regenerate"
-                                        className="w-4.5 cursor-pointer"
+                                        className={`w-4.5 ${
+                                            isLastMessage
+                                                ? "cursor-pointer"
+                                                : "cursor-not-allowed opacity-40"
+                                        }`}
                                     />
                                     <Image
                                         src={assets.like_icon}
@@ -69,8 +100,76 @@ const Message = ({ role, content }) => {
                                 alt="logo"
                                 className="h-8 w-8 p-1 border border-white/15 rounded-full"
                             />
-                            <div className="space-y-4 w-full overflow-scroll">
-                                <Markdown>{content}</Markdown>
+                            <div className="space-y-4 w-full overflow-hidden">
+                                <Markdown
+                                    components={{
+                                        h1: ({ children }) => (
+                                            <h1 className="text-2xl font-semibold mb-4">
+                                                {children}
+                                            </h1>
+                                        ),
+                                        h2: ({ children }) => (
+                                            <h2 className="text-xl font-semibold mb-3">
+                                                {children}
+                                            </h2>
+                                        ),
+                                        h3: ({ children }) => (
+                                            <h3 className="text-lg font-semibold mb-2">
+                                                {children}
+                                            </h3>
+                                        ),
+                                        p: ({ children }) => (
+                                            <p className="leading-7 mb-3">
+                                                {children}
+                                            </p>
+                                        ),
+                                        ul: ({ children }) => (
+                                            <ul className="list-disc ml-6 mb-3 space-y-1">
+                                                {children}
+                                            </ul>
+                                        ),
+                                        ol: ({ children }) => (
+                                            <ol className="list-decimal ml-6 mb-3 space-y-1">
+                                                {children}
+                                            </ol>
+                                        ),
+                                        li: ({ children }) => (
+                                            <li className="leading-7">
+                                                {children}
+                                            </li>
+                                        ),
+                                        a: ({ children, href }) => (
+                                            <a
+                                                href={href}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="underline"
+                                            >
+                                                {children}
+                                            </a>
+                                        ),
+                                        code: ({ children, className }) => {
+                                            const isBlock =
+                                                className?.includes(
+                                                    "language-",
+                                                );
+
+                                            return isBlock ? (
+                                                <code
+                                                    className={`${className} block`}
+                                                >
+                                                    {children}
+                                                </code>
+                                            ) : (
+                                                <code className="px-1.5 py-0.5 rounded bg-white/10 text-sm">
+                                                    {children}
+                                                </code>
+                                            );
+                                        },
+                                    }}
+                                >
+                                    {content}
+                                </Markdown>
                             </div>
                         </>
                     )}
