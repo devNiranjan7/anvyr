@@ -21,7 +21,7 @@ const Message = ({ role, content, onRegenerate, isLastMessage, onEdit }) => {
                 setCopied(false);
             }, 1500);
         } catch (error) {
-            toast.error("Failed to copy:", error);
+            toast.error(`Failed to copy: ${error.message}`);
         }
     };
 

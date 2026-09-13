@@ -43,7 +43,7 @@ export default function Home() {
                 if (error.name === "AbortError") {
                     return;
                 }
-                toast.error("Error fetching chat:", error);
+                toast.error(`Error fetching chat: ${error.message}`);
             }
         };
         fetchChat();
@@ -79,7 +79,7 @@ export default function Home() {
             setMessages([]);
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            toast.error("Error creating new chat:", error);
+            toast.error(`Error creating new chat: ${error.message}`);
         }
     };
     const handleChatDeleted = (deleteChatId) => {
@@ -124,7 +124,7 @@ export default function Home() {
             });
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            toast.error("Error regenerating response:", error);
+            toast.error(`Error regenerating response: ${error.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -168,7 +168,7 @@ export default function Home() {
             setEditingMessage(null);
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            toast.error("Error editing message:", error);
+            toast.error(`Error editing message: ${error.message}`);
         } finally {
             setIsLoading(false);
         }

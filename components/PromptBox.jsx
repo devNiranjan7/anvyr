@@ -60,7 +60,7 @@ const PromptBox = ({
             ]);
             setRefreshChats((prev) => prev + 1);
         } catch (error) {
-            toast.error(error);
+            toast.error(error instanceof Error ? error.message : String(error));
         } finally {
             setIsLoading(false);
         }

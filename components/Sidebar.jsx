@@ -30,11 +30,12 @@ const Sidebar = ({
             try {
                 const response = await fetch("/api/chat/get");
                 const data = await response.json();
-                if (data.success) {
-                    setChats(data.data);
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Failed to fetch chats");
                 }
+                setChats(data.data);
             } catch (error) {
-                toast.error("Error fetching chats:", error);
+                toast.error(`Error fetching chats: ${error.message}`);
             }
         };
         fetchChats();

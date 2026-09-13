@@ -41,7 +41,7 @@ const ChatLabel = ({
             refreshChats();
             setOpenMenu({ id: null, open: false });
         } catch (error) {
-            toast.error("Error renaming chat:", error);
+            toast.error(`Error renaming chat: ${error.message}`);
         }
     };
     const handleDelete = async () => {
@@ -64,7 +64,7 @@ const ChatLabel = ({
             onChatDeleted(chat._id);
             setOpenMenu({ id: null, open: false });
         } catch (error) {
-            toast.error("Error deleting chat:", error);
+            toast.error(`Error deleting chat: ${error.message}`);
         }
     };
 
